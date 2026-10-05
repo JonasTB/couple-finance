@@ -1,0 +1,16 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Install scripts we allow: argon2 (native password hashing; selects/builds its binary).
+onlyBuiltDependencies:
+  - argon2
+
+# Install scripts we deliberately skip:
+# - @parcel/watcher, unrs-resolver (via Jest): prebuilt binaries ship as optional
+#   dependencies; their scripts are only source-build fallbacks.
+# - @scarf/scarf (via swagger-ui-dist): install-time telemetry, never wanted.
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - '@scarf/scarf'
+  - unrs-resolver

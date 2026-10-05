@@ -1,0 +1,73 @@
+# Quality gates (Stage 13, ADR-018). Vercel deploys from Git on its own; protect `main` with
+# these checks so only green commits reach production.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Format, lint, typecheck, unit tests, build, audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6 # version from package.json#packageManager
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify
+      - name: Dependency audit (production dependencies)
+        run: pnpm audit --prod --audit-level=moderate
+
+  database:
+    name: Migrations and end-to-end tests (PostgreSQL 17)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: couple_finance
+          TZ: UTC
+          PGTZ: UTC
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d couple_finance"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      # Throwaway CI database and a CI-only signing key (not a secret: nothing else uses it).
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/couple_finance
+      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/couple_finance_test
+      JWT_ACCESS_SECRET: ci-only-signing-key-never-used-outside-github-actions
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Create the e2e database
+        run: psql postgresql://postgres:postgres@localhost:5432/postgres -c 'CREATE DATABASE couple_finance_test'
+      - run: pnpm build:shared
+      - name: Migrations apply from scratch, match the entities, and the latest one reverts
+        run: |
+          pnpm db:migrate
+          pnpm --filter @couple-finance/api migration:check
+          pnpm --filter @couple-finance/api migration:revert
+          pnpm db:migrate
+      - run: pnpm test:e2e

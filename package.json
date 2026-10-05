@@ -1,0 +1,34 @@
+{
+  "name": "couple-finance",
+  "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "build:shared": "pnpm --filter @couple-finance/shared build",
+    "dev:api": "pnpm build:shared && pnpm --filter @couple-finance/api start:dev",
+    "dev:web": "pnpm build:shared && pnpm --filter @couple-finance/web dev",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down",
+    "db:seed:demo": "pnpm build:shared && pnpm --filter @couple-finance/api seed:demo",
+    "db:migrate": "pnpm --filter @couple-finance/api migration:run",
+    "lint": "pnpm build:shared && pnpm -r lint",
+    "typecheck": "pnpm build:shared && pnpm -r typecheck",
+    "test": "pnpm build:shared && pnpm -r test",
+    "test:e2e": "pnpm build:shared && pnpm --filter @couple-finance/api test:e2e",
+    "build": "pnpm -r build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "prettier": "3.9.9"
+  },
+  "pnpm": {
+    "overrides": {
+      "js-yaml@>=5.0.0 <5.4.1": "5.4.2"
+    }
+  }
+}

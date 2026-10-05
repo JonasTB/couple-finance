@@ -1,0 +1,8 @@
+# Never upload local secrets or build artifacts with `vercel deploy` (Git deploys use the repo).
+.env
+.env.*
+!.env.example
+**/node_modules
+**/dist
+coverage
+.vercel

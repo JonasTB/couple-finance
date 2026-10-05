@@ -1,0 +1,9 @@
+{
+  "extends": "@couple-finance/tsconfig/nest.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "baseUrl": ".",
+    "types": ["node", "jest"]
+  },
+  "include": ["src", "test", "scripts"]
+}

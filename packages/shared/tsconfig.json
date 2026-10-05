@@ -1,0 +1,9 @@
+{
+  "extends": "@couple-finance/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}
