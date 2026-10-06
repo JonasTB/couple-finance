@@ -64,6 +64,7 @@ Without Redis, rate-limit counters live in each function instance, which is enou
 |---|---|
 | Build fails: `Cannot find module '@couple-finance/shared'` | a service did not build `shared` first; keep the `buildCommand`s from `vercel.json` |
 | Build fails at `migrate-on-deploy` | migration error: the previous deployment keeps serving; fix the migration and redeploy. Check `DATABASE_URL_UNPOOLED` exists for that environment |
+| API logs `Cannot find module 'reflect-metadata'` (or another package) | the deployed code predates `src/bootstrap/vercel-module-paths.ts`, or that import is no longer first in `main.ts` (ADR-018 amendment 1) |
 | Build fails because `nest`/`vite` are missing | `NODE_ENV=production` was set in Vercel: remove it |
 | Everyone gets `RATE_LIMITED` on login | `TRUST_PROXY` not `true`, so all requests look like one IP |
 | Session lost on reload | not served over HTTPS, or the site is reached on a different origin than `/api` (the Services rewrite keeps them together) |

@@ -1,4 +1,5 @@
-// Must stay the first import (see register-env.ts).
+// Must stay the first imports: module paths on Vercel, then the environment (register-env.ts).
+import './bootstrap/vercel-module-paths';
 import './config/register-env';
 import 'reflect-metadata';
 import { ConfigService } from '@nestjs/config';

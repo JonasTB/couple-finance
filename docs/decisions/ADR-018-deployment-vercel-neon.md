@@ -59,3 +59,10 @@ GitHub Actions `.github/workflows/ci.yml`. Vercel deploys from Git on its own; b
 − Serverless cold starts (Nest + TypeORM) add latency to the first request after idle.
 − In-memory rate limits are per instance unless Redis is added.
 − Migrations must be written expand/contract.
+
+## Amendments (first deployment, 2026-10-06)
+1. **Flattened function layout (Vercel CLI 62.5+).** Vercel's NestJS builder now places the compiled API at the function root (`/var/task/main.js`) while keeping pnpm dependencies at their monorepo paths (`apps/api/node_modules` → `node_modules/.pnpm`). The first production deploy therefore failed with `Cannot find module 'reflect-metadata'`. With CLI 62.2 the entry stayed at `apps/api/src/main.js`, which is why the local check passed.
+   - Fix: `src/bootstrap/vercel-module-paths.ts`, the first import of `main.ts`, adds `apps/api/node_modules` to the module search path when that folder sits next to the entry point. It is a no-op anywhere else.
+   - Verified by rebuilding with CLI 62.5, recreating the function tree from `.vc-config.json` and booting it: `/api/health` up and register `201`, which includes argon2's native binary.
+   - Rejected alternative: pnpm `node-linker=hoisted` fixes external packages but not the workspace package `@couple-finance/shared`.
+
